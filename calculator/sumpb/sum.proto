@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package sum;
+
+option go_package = "sumpb";
+
+message Sum {
+   int32 first_number = 1;
+   int32 second_number = 2;
+}
+
+message DoSumRequest {
+    Sum sum = 1;
+}
+
+message DoSumResponse {
+    int32 result = 1;
+}
+
+service SumApi {
+    rpc DoSum(DoSumRequest) returns (DoSumResponse) {};
+}
