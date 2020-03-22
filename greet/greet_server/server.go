@@ -1,12 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"google.golang.org/grpc"
 	"github.com/suliar/grpc-go-course/greet/greetpb"
+	"google.golang.org/grpc"
 	"log"
 	"net"
 )
+
+type server struct {}
+
+func (s *server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+
+}
 
 func main() {
 	fmt.Println("Hello World")
@@ -16,4 +23,9 @@ func main() {
 	}
 
 	s:= grpc.NewServer()
+	greetpb.RegisterGreetServiceServer(s, &server{})
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
