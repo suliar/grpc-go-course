@@ -22,6 +22,11 @@ func (s *server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb
 	}, nil
 }
 
+func (s *server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, opts ...grpc.CallOption) (GreetService_GreetManyTimesClient, error) {
+
+}
+
+
 func main() {
 	fmt.Println("Hello World")
 	lis, err :=  net.Listen("tcp", "0.0.0.0:50051")
