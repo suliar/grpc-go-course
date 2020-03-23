@@ -17,6 +17,18 @@ message DoSumResponse {
     int32 result = 1;
 }
 
+message PrimeNumberRequest {
+    int64 primeNo = 1;
+}
+
+message PrimeNumberResponse {
+    int64 result = 1;
+}
+
 service SumApi {
+    // Unary
     rpc DoSum(DoSumRequest) returns (DoSumResponse) {};
+
+    // Streaming
+    rpc PrimeNumberDecom(PrimeNumberRequest) returns (stream PrimeNumberResponse) {};
 }
