@@ -51,6 +51,10 @@ func (s *server) PrimeNumberDecom(req *sumpb.PrimeNumberRequest, stream sumpb.Su
 	return nil
 }
 
+func (s *server) ComputeAverage(stream sumpb.SumApi_ComputeAverageServer) error {
+	return nil
+}
+
 func main() {
 	fmt.Println("Hello World")
 	lis, err :=  net.Listen("tcp", "0.0.0.0:50051")
