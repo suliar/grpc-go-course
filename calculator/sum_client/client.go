@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"io"
 	"log"
+	"time"
 )
 
 func main() {
@@ -18,15 +19,16 @@ func main() {
 	defer cc.Close()
 	c := sumpb.NewSumApiClient(cc)
 	//doSum(c)
-	doStreamSum(c)
+	//doStreamSum(c)
+	doClientStreamAverage(c)
 
 }
 
-func doSum(c sumpb.SumApiClient){
+func doSum(c sumpb.SumApiClient) {
 	req := &sumpb.DoSumRequest{
-		Sum:                  &sumpb.Sum{
-			FirstNumber:          3,
-			SecondNumber:         10,
+		Sum: &sumpb.Sum{
+			FirstNumber:  3,
+			SecondNumber: 10,
 		},
 	}
 
@@ -58,5 +60,34 @@ func doStreamSum(c sumpb.SumApiClient) {
 
 		fmt.Println(res.GetResult())
 	}
+
+}
+
+func doClientStreamAverage(c sumpb.SumApiClient) {
+	fmt.Println("starting to do a client streaming rpc")
+
+	numbers := []int64{1, 1, 1, 1, 1}
+
+	stream, err := c.ComputeAverage(context.Background())
+	if err != nil {
+		log.Fatalf("error while calling Compute Average: %v", err)
+	}
+
+	for _, number := range numbers {
+		time.Sleep(1000 * time.Millisecond)
+		err = stream.Send(&sumpb.ComputeAverageRequest{
+			Number: number,
+		})
+		if err != nil {
+			log.Fatalf("fail to send request: %v\n error is :%v", numbers, err)
+		}
+
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("error while receiving Compute Average: %v", err)
+	}
+
+	fmt.Printf("Compute Average Response: %v", res)
 
 }

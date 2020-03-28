@@ -67,6 +67,12 @@ func (s *server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
 	return nil
 }
 
+func (s *server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) error {
+	return nil
+}
+
+
+
 func main() {
 	fmt.Println("Hello World")
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")

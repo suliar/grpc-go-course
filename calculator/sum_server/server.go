@@ -53,13 +53,13 @@ func (s *server) PrimeNumberDecom(req *sumpb.PrimeNumberRequest, stream sumpb.Su
 }
 
 func (s *server) ComputeAverage(stream sumpb.SumApi_ComputeAverageServer) error {
-	fmt.Printf("ComputeAverage function was invoked with a streaming request")
+	fmt.Printf("ComputeAverage function was invoked with a streaming request\n")
 	var total float64
-	var count int
+	var count float64
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
-			average := total / float64(count)
+			average := total / count
 			return stream.SendAndClose(&sumpb.ComputeAverageResponse{
 				Result: average,
 
@@ -76,13 +76,6 @@ func (s *server) ComputeAverage(stream sumpb.SumApi_ComputeAverageServer) error 
 	return nil
 }
 
-func (s *server)average(xs[]float64)float64 {
-	total:=0.0
-	for _,v:=range xs {
-		total +=v
-	}
-	return total/float64(len(xs))
-}
 
 func main() {
 	fmt.Println("Hello World")
