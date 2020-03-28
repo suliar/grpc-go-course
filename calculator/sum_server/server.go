@@ -30,6 +30,27 @@ func (s *server) DoSum(ctx context.Context, req *sumpb.DoSumRequest) (*sumpb.DoS
 	return rest, nil
 }
 
+func (s *server) PrimeNumberDecom(req *sumpb.PrimeNumberRequest, stream sumpb.SumApi_PrimeNumberDecomServer) error {
+	fmt.Printf("PrimeNumberDecom function was invoked: %v", req)
+	num := req.GetPrimeNo()
+	divisor := int64(2)
+
+	// Get the number of 2s that divide num
+	for num > 1 {
+		if num% 2 == 0 {
+			stream.Send(&sumpb.PrimeNumberResponse{
+				Result: divisor,
+			})
+			num = num / divisor
+		} else {
+			divisor++
+			fmt.Printf("divisor has increased: %v", divisor)
+		}
+
+	}
+	return nil
+}
+
 func main() {
 	fmt.Println("Hello World")
 	lis, err :=  net.Listen("tcp", "0.0.0.0:50051")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/suliar/grpc-go-course/calculator/sumpb"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 )
 
@@ -16,7 +17,8 @@ func main() {
 	}
 	defer cc.Close()
 	c := sumpb.NewSumApiClient(cc)
-	doSum(c)
+	//doSum(c)
+	doStreamSum(c)
 
 }
 
@@ -33,5 +35,28 @@ func doSum(c sumpb.SumApiClient){
 		log.Fatalf("error while callling sum rpc: %v", err)
 	}
 	log.Printf("response from Sum: %v", res.Result)
+
+}
+
+func doStreamSum(c sumpb.SumApiClient) {
+	req := &sumpb.PrimeNumberRequest{
+		PrimeNo: 12,
+	}
+
+	resStream, err := c.PrimeNumberDecom(context.Background(), req)
+	if err != nil {
+		log.Fatalf("error while callling sum rpc: %v", err)
+	}
+	for {
+		res, err := resStream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Something wrong happened: %v", err)
+		}
+
+		fmt.Println(res.GetResult())
+	}
 
 }
