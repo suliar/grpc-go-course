@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/suliar/grpc-go-course/calculator/sumpb"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 )
@@ -52,7 +53,35 @@ func (s *server) PrimeNumberDecom(req *sumpb.PrimeNumberRequest, stream sumpb.Su
 }
 
 func (s *server) ComputeAverage(stream sumpb.SumApi_ComputeAverageServer) error {
+	fmt.Printf("ComputeAverage function was invoked with a streaming request")
+	var total float64
+	var count int
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			average := total / float64(count)
+			return stream.SendAndClose(&sumpb.ComputeAverageResponse{
+				Result: average,
+
+			})
+		}
+
+		if err != nil {
+			log.Fatalf("Error whilst reading client stream: %v", err)
+		}
+		total += float64(req.GetNumber())
+		count++
+
+	}
 	return nil
+}
+
+func (s *server)average(xs[]float64)float64 {
+	total:=0.0
+	for _,v:=range xs {
+		total +=v
+	}
+	return total/float64(len(xs))
 }
 
 func main() {
