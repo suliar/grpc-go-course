@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/suliar/grpc-go-course/greet/greetpb"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 	"strconv"
 	"time"
 )
 
-type server struct {}
+type server struct{}
 
 func (s *server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
 	fmt.Printf("Greet function was invoked: %v", req)
@@ -19,8 +20,7 @@ func (s *server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb
 	result := "Hello " + firstName
 
 	return &greetpb.GreetResponse{
-		Result:               result,
-
+		Result: result,
 	}, nil
 }
 
@@ -30,8 +30,7 @@ func (s *server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greet
 	for i := 0; i < 10; i++ {
 		result := "Hello " + firstName + " number " + strconv.Itoa(i)
 		res := &greetpb.GreetManyTimesResponse{
-			Result:               result,
-
+			Result: result,
 		}
 		err := stream.Send(res)
 		if err != nil {
@@ -43,15 +42,39 @@ func (s *server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greet
 
 }
 
+func (s *server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
+	fmt.Printf("LongGreet function was invoked with a streaming request\n")
+
+	result := "Hello "
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			// basically means we have finished reading the client stream
+			return stream.SendAndClose(&greetpb.LongGreetResponse{
+				Result: result,
+			})
+
+		}
+		if err != nil {
+			log.Fatalf("Error whilst reading client stream: %v", err)
+		}
+
+		firstName := req.Greeting.GetFirstName()
+
+		result += firstName + "! "
+
+	}
+	return nil
+}
 
 func main() {
 	fmt.Println("Hello World")
-	lis, err :=  net.Listen("tcp", "0.0.0.0:50051")
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	s:= grpc.NewServer()
+	s := grpc.NewServer()
 	greetpb.RegisterGreetServiceServer(s, &server{})
 
 	if err := s.Serve(lis); err != nil {
