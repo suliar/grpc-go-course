@@ -19,10 +19,11 @@ func main() {
 
 	c := blogpb.NewBlogServiceClient(cc)
 
-	doUnary(c)
+	//doCreateBlog(c)
+	doReadBlog(c)
 }
 
-func doUnary(c blogpb.BlogServiceClient) {
+func doCreateBlog(c blogpb.BlogServiceClient) {
 	fmt.Println("starting to do unary rpc...")
 	req := &blogpb.CreateBlogRequest{
 		Blog:                 &blogpb.Blog{
@@ -38,4 +39,19 @@ func doUnary(c blogpb.BlogServiceClient) {
 		log.Fatalf("Failed to created blog: %v", err)
 	}
 	fmt.Printf("Blog has been created: %v", res)
+}
+
+func doReadBlog(c blogpb.BlogServiceClient) {
+	fmt.Println("starting to do unary rpc...")
+	req := &blogpb.ReadBlogRequest{
+		BlogId: "5e80ab03dc07445c58faf713",
+
+	}
+
+	fmt.Println("Reading Block")
+	res, err := c.ReadBlog(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Failed to read blog: %v", err)
+	}
+	fmt.Printf("Blog Found: %v", res.Blog)
 }
