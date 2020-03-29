@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 	"net"
 	"os"
@@ -23,6 +25,42 @@ type blogItem struct {
 	AuthorID string             `bson:"author_id"`
 	Content  string             `bson:"content"`
 	Title    string             `bson:"title"`
+}
+
+// CreateBlog saves the blog into the database
+func (s *server) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
+	fmt.Println("Create Blog Request")
+	blog := req.GetBlog()
+
+	data := blogItem{
+		AuthorID: blog.GetAuthorId(),
+		Title:    blog.GetTitle(),
+		Content:  blog.GetContent(),
+	}
+
+	// We need to now add this data to our database
+	res, err := collection.InsertOne(ctx, data)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			fmt.Sprintf("Internal Error: %v", err),
+		)
+	}
+
+	oid, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return nil, status.Errorf(codes.Internal,
+			fmt.Sprintf("Cannot convert to OID: %v", err),
+		)
+	}
+
+	return &blogpb.CreateBlogResponse{
+		Blog: &blogpb.Blog{
+			Id:       oid.Hex(),
+			AuthorId: blog.GetAuthorId(),
+			Title:    blog.GetTitle(),
+			Content:  blog.GetContent(),
+		},
+	}, nil
 }
 
 func main() {
