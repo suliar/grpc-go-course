@@ -98,6 +98,56 @@ func (s *server) ReadBlog(ctx context.Context, req *blogpb.ReadBlogRequest) (*bl
 	}, nil
 }
 
+func (s *server) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogRequest) (*blogpb.UpdateBlogResponse, error) {
+	fmt.Println("Update Blog Request")
+
+	blog := req.GetBlog()
+
+	oid, err := primitive.ObjectIDFromHex(blog.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument,
+			fmt.Sprintf("Cannot Parse ID: %v", err),
+		)
+	}
+
+	// create an empty struct
+	data := &blogItem{}
+
+	// To filter based on the oid provided
+	filter := bson.M{"_id": oid}
+	// Find the blog using the ID
+	res := collection.FindOne(context.Background(), filter)
+
+	// Decode the result into an empty struct
+	if err := res.Decode(data); err != nil {
+		return nil, status.Errorf(codes.NotFound,
+			fmt.Sprintf("Cannot find blog with specified ID: %v", err),
+		)
+
+	}
+
+	// we've updated our internal struct
+	data.AuthorID = blog.GetAuthorId()
+	data.Title = blog.GetTitle()
+	data.Title = blog.GetContent()
+
+	_, err = collection.ReplaceOne(context.Background(), filter, data)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			fmt.Sprintf("Cannot update object: %v", err),
+		)
+	}
+
+	return &blogpb.UpdateBlogResponse{
+		Blog: &blogpb.Blog{
+			Id:       data.ID.Hex(),
+			AuthorId: data.AuthorID,
+			Title:    data.Title,
+			Content:  data.Content,
+		},
+	}, nil
+}
+
 func main() {
 
 	// if we crash the go code, we get the file name and line number

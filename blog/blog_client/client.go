@@ -20,7 +20,8 @@ func main() {
 	c := blogpb.NewBlogServiceClient(cc)
 
 	//doCreateBlog(c)
-	doReadBlog(c)
+	//doReadBlog(c)
+	doUpdateBlog(c)
 }
 
 func doCreateBlog(c blogpb.BlogServiceClient) {
@@ -50,6 +51,26 @@ func doReadBlog(c blogpb.BlogServiceClient) {
 
 	fmt.Println("Reading Block")
 	res, err := c.ReadBlog(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Failed to read blog: %v", err)
+	}
+	fmt.Printf("Blog Found: %v", res.Blog)
+}
+
+func doUpdateBlog(c blogpb.BlogServiceClient) {
+	fmt.Println("starting to do unary rpc...")
+	req := &blogpb.UpdateBlogRequest{
+		Blog: &blogpb.Blog{
+			Id:                   "5e80ab03dc07445c58faf713",
+			AuthorId:             "SuliA",
+			Title:                "Updated",
+			Content:              "The content is fuck off",
+		},
+
+	}
+
+	fmt.Println("Updating Blog")
+	res, err := c.UpdateBlog(context.Background(), req)
 	if err != nil {
 		log.Fatalf("Failed to read blog: %v", err)
 	}
