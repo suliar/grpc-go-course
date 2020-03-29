@@ -21,16 +21,17 @@ func main() {
 
 	//doCreateBlog(c)
 	//doReadBlog(c)
-	doUpdateBlog(c)
+	//doUpdateBlog(c)
+	doDeleteBlog(c)
 }
 
 func doCreateBlog(c blogpb.BlogServiceClient) {
 	fmt.Println("starting to do unary rpc...")
 	req := &blogpb.CreateBlogRequest{
-		Blog:                 &blogpb.Blog{
-			AuthorId:             "Ange",
-			Title:                "Second blog content",
-			Content:              "Currently playing weird songs",
+		Blog: &blogpb.Blog{
+			AuthorId: "Ange",
+			Title:    "Second blog content",
+			Content:  "Currently playing weird songs",
 		},
 	}
 
@@ -46,7 +47,6 @@ func doReadBlog(c blogpb.BlogServiceClient) {
 	fmt.Println("starting to do unary rpc...")
 	req := &blogpb.ReadBlogRequest{
 		BlogId: "5e80ab03dc07445c58faf713",
-
 	}
 
 	fmt.Println("Reading Block")
@@ -61,12 +61,11 @@ func doUpdateBlog(c blogpb.BlogServiceClient) {
 	fmt.Println("starting to do unary rpc...")
 	req := &blogpb.UpdateBlogRequest{
 		Blog: &blogpb.Blog{
-			Id:                   "5e80ab03dc07445c58faf713",
-			AuthorId:             "SuliA",
-			Title:                "Updated",
-			Content:              "The content is fuck off",
+			Id:       "5e80ab03dc07445c58faf713",
+			AuthorId: "SuliA",
+			Title:    "Updated",
+			Content:  "The content is fuck off",
 		},
-
 	}
 
 	fmt.Println("Updating Blog")
@@ -75,4 +74,18 @@ func doUpdateBlog(c blogpb.BlogServiceClient) {
 		log.Fatalf("Failed to read blog: %v", err)
 	}
 	fmt.Printf("Blog Found: %v", res.Blog)
+}
+
+func doDeleteBlog(c blogpb.BlogServiceClient) {
+	fmt.Println("starting to do unary rpc...")
+	req := &blogpb.DeleteBlogRequest{
+		BlogId: "5e80a9b5dc07445c58faf710",
+	}
+
+	fmt.Println("Deleting Blog")
+	res, err := c.DeleteBlog(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Failed to read blog: %v", err)
+	}
+	fmt.Printf("Blog Deleted: %v", res.BlogId)
 }
