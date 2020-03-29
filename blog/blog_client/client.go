@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/suliar/grpc-go-course/blog/blogpb"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 )
 
@@ -19,10 +20,13 @@ func main() {
 
 	c := blogpb.NewBlogServiceClient(cc)
 
-	//doCreateBlog(c)
+	//for i := 0; i < 5; i++ {
+	//	doCreateBlog(c)
+	//}
 	//doReadBlog(c)
 	//doUpdateBlog(c)
-	doDeleteBlog(c)
+	//doDeleteBlog(c)
+	doListBlog(c)
 }
 
 func doCreateBlog(c blogpb.BlogServiceClient) {
@@ -88,4 +92,28 @@ func doDeleteBlog(c blogpb.BlogServiceClient) {
 		log.Fatalf("Failed to read blog: %v", err)
 	}
 	fmt.Printf("Blog Deleted: %v", res.BlogId)
+}
+
+
+func doListBlog(c blogpb.BlogServiceClient) {
+	fmt.Println("starting to do unary rpc...")
+	req := &blogpb.ListBlogRequest{
+	}
+
+	fmt.Println("Deleting Blog")
+	res, err := c.ListBlog(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Failed to read blog: %v", err)
+	}
+
+	for {
+		msg, err := res.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error while reading stream: %v", err)
+		}
+		fmt.Printf("List of Blogs\n: %v", msg.GetBlog())
+	}
 }

@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"log"
 	"net"
@@ -164,10 +165,48 @@ func (s *server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) 
 		)
 	}
 
-
 	return &blogpb.DeleteBlogResponse{
 		BlogId: blogID,
 	}, nil
+}
+
+func (s *server) ListBlog(req *blogpb.ListBlogRequest, stream blogpb.BlogService_ListBlogServer) error {
+	fmt.Println("ListBlog request")
+
+	cur, err := collection.Find(context.Background(), primitive.D{{}})
+	if err != nil {
+		return status.Errorf(codes.Internal,
+			fmt.Sprintf("Unknown internal error: %v", err),
+		)
+	}
+
+	defer cur.Close(context.Background())
+
+	for cur.Next(context.Background()) {
+		data := blogItem{}
+		err = cur.Decode(&data)
+		if err != nil {
+			return status.Errorf(codes.Internal,
+				fmt.Sprintf("Error while decoding data: %v", err),
+			)
+		}
+		err = stream.Send(&blogpb.ListBlogResponse{
+			Blog: mapDataToBlog(&data),
+		})
+		if err != nil {
+			return status.Errorf(codes.Internal,
+				fmt.Sprintf("Error while sending via stream: %v", err),
+			)
+		}
+	}
+
+	if err := cur.Err(); err != nil {
+		return status.Errorf(codes.Internal,
+			fmt.Sprintf("unkown error: %v", err),
+		)
+	}
+
+	return nil
 }
 
 func mapDataToBlog(data *blogItem) *blogpb.Blog {
@@ -207,6 +246,8 @@ func main() {
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
 	blogpb.RegisterBlogServiceServer(s, &server{})
+
+	reflection.Register(s)
 
 	go func() {
 		fmt.Println("Starting server")
